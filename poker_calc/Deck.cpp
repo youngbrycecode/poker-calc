@@ -47,6 +47,16 @@ namespace sim
         mTopOfDeckIndex = NumCardsInDeck - 1;
     }
     
+    card_t Deck::Draw()
+    {
+        if (mTopOfDeckIndex < 0) return 0;
+
+        card_t nextCard = mCards[mTopOfDeckIndex];
+        mTopOfDeckIndex--;
+        
+        return nextCard;
+    }
+    
     void Deck::Print(int numCards, std::ostream& outputBuffer)
     {
         outputBuffer << "Printing " << numCards << " from the top of the deck\n";

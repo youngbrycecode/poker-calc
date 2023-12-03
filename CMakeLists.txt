@@ -1,16 +1,17 @@
 cmake_minimum_required(VERSION 3.26)
-set(EXE_NAME "poker_calc")
-project(${EXE_NAME})
+
+set(EXE_NAME "poker_sim")
+project(${EXE_NAME} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-include_directories("include")
+enable_testing()
 
-file (GLOB SRC
-    "src/*.cpp"
-    "include/*.h"
-    "include/*.hpp"
-)
+add_subdirectory(poker_calc)
+add_subdirectory(tests)
 
-add_executable(${EXE_NAME} ${SRC})
+include_directories(poker_calc/include)
+add_executable(${EXE_NAME} main.cpp ${HEADER_FILES})
+target_link_libraries(${EXE_NAME} poker_calc_lib)
