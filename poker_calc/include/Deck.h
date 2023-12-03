@@ -2,10 +2,12 @@
 
 #include "Cards.h"
 #include "Random.h"
+#include <limits>
 
 namespace sim 
 {
     constexpr int NumCardsInDeck = 52;
+    constexpr int NotACard = std::numeric_limits<card_t>::max();
 
     class Deck
     {
@@ -19,6 +21,9 @@ namespace sim
             void ShuffleAndReset(int nTimes, Random& random);
             
             /// @brief Puts the cards back into the starting order.
+            void ReorderAndReset();
+
+            /// @brief Returns all the cards to the deck in the last order they were seen in.
             void Reset();
             
             /// @brief Draws a single card from the deck if possible.

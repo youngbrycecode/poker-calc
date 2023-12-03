@@ -1,10 +1,11 @@
 #pragma once
 
 #include <ostream>
+#include <stdint.h>
 
 namespace sim 
 {
-    typedef char card_t;
+    typedef uint8_t card_t;
 
     enum class Rank
     {

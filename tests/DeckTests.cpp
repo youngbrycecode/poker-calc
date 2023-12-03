@@ -1,7 +1,11 @@
 #include <gtest/gtest.h>
+#include <math.h>
 #include "Deck.h"
 
 using namespace sim;
+
+static void ValidateDeck(Deck& deck);
+static void DoubleCompareEq(double d1, double d2, double thresh);
 
 TEST(DeckTests, TestCreateCards)
 {
@@ -26,7 +30,7 @@ TEST(DeckTests, TestCreateCards)
 TEST(DeckTests, TestDeckResetOrder)
 {
     Deck deck;
-    deck.Reset();
+    deck.ReorderAndReset();
 
     for (int i = (int)Rank::MaxRank - 1; i >= 0; i--)
     {
@@ -34,6 +38,128 @@ TEST(DeckTests, TestDeckResetOrder)
         {
             card_t card = Card::CreateCard((Rank)i, (Suit)j);
             ASSERT_EQ(card, deck.Draw());
+        }
+    }
+}
+
+TEST(DeckTests, SufficientShuffleRandomness)
+{
+    // Shuffle the deck thousands of times counting the number of times each card appeared at each position.
+    // Ensure that (within a threshold, we have an equal probability of getting any card anywhere in the deck).
+    const int numShuffles = 50000;
+    Deck deck;
+
+    // Seed our random so we can be sure to get the same results every time we run this.
+    Random random(1000);
+    
+    // Some of the 256 indices will not be used since we only have 52 different types of cards, but for speed
+    // purposes, it would be nice to just index with the card_t value. This relies on the format of card_t being 
+    // a single byte, so ensure that here.
+    ASSERT_EQ(sizeof(card_t), sizeof(uint8_t));
+
+    // half mB datbase mapping card index to the count of each card during the shuffle.
+    std::array<std::array<int, 256>, NumCardsInDeck> numOccurrences;
+    numOccurrences[0].fill(0);
+    numOccurrences.fill(numOccurrences[0]);
+    
+    for (int i = 0; i < numShuffles; i++)
+    {
+        deck.ShuffleAndReset(Deck::OptimalShuffleCount, random);
+        ValidateDeck(deck);
+        
+        card_t currentCard = deck.Draw();
+        int deckIndex = 0;
+
+        while (currentCard != NotACard)
+        {
+            numOccurrences[deckIndex][currentCard]++;
+            currentCard = deck.Draw();
+            deckIndex++;
+        }
+    }
+    
+    // After we finish shuffling n times and filling out the database, ensure we get sufficient randomness.
+    // Since we shuffled many times, there should be a relatively equal chance of any card appearing in any deck position.
+    // At 10000 shuffles, each card has a 1/52 chance to appear at any position.
+    // 10000 * (1/52) is our expected number of occurrences at each position.
+    // for the purposes of this test, we will use a high threshold, we just want to make sure we get each card in every position many times.
+    const int expectedNumOccurrences = (int)((1.0 / NumCardsInDeck) * numShuffles);
+    const int numOccurrencesThreshold = 160;
+    
+    // Data for statistics computation on each card position.
+    std::array<uint64_t, 256> sum;
+    std::array<uint64_t, 256> sumSq;
+    sum.fill(0);
+    sumSq.fill(0);
+
+    for (int i = 0; i < NumCardsInDeck; i++)
+    {
+        // Iterate through every card, and make sure it appeared in the deck the expected number of times.
+        for (int rank = 0; rank < (int)Rank::MaxRank; rank++)
+        {
+            for (int suit = 0; suit < (int)Suit::MaxSuit; suit++)
+            {
+                card_t card = Card::CreateCard((Rank)rank, (Suit)suit);
+                int nOccurrences = numOccurrences[i][card];
+                
+                sum[card] += nOccurrences;
+                sumSq[card] += nOccurrences * nOccurrences;
+                
+                ASSERT_GT(nOccurrences, expectedNumOccurrences - numOccurrencesThreshold);
+                ASSERT_LT(nOccurrences, expectedNumOccurrences + numOccurrencesThreshold);
+            }
+        }
+    }
+    
+    // The means should be exactly the number of occurrences.
+    for (int rank = 0; rank < (int)Rank::MaxRank; rank++)
+    {
+        for (int suit = 0; suit < (int)Suit::MaxSuit; suit++)
+        {
+            card_t card = Card::CreateCard((Rank)rank, (Suit)suit);
+            double mean = sum[card] / (double)NumCardsInDeck;
+            
+            DoubleCompareEq(mean, expectedNumOccurrences, 0.01);
+        }
+    }
+}
+
+static void DoubleCompareEq(double d1, double d2, double thresh) 
+{
+    ASSERT_TRUE(d1 > d2 - (d2 * thresh) && d1 < d2 + (d2 * thresh));
+}
+
+/// @brief Ensure that each card appears in the deck, one time.
+static void ValidateDeck(Deck& deck)
+{
+    std::array<int, 256> db;
+    db.fill(0);
+
+    for (int rank = 0; rank < (int)Rank::MaxRank; rank++)
+    {
+        for (int suit = 0; suit < (int)Suit::MaxSuit; suit++)
+        {
+            card_t card = Card::CreateCard((Rank)rank, (Suit)suit);
+            db[card] = 1;
+        }
+    }
+
+    deck.Reset();
+    
+    card_t currentCard = deck.Draw();
+    while (currentCard != NotACard)
+    {
+        db[currentCard]--;
+        currentCard = deck.Draw();
+    }
+
+    deck.Reset();
+
+    for (int i = 0; i < 256; i++)
+    {
+        if (db[i] != 0)
+        {
+            ASSERT_FALSE(true);
         }
     }
 }
