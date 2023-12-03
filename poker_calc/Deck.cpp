@@ -6,7 +6,7 @@ namespace sim
     int Deck::OptimalShuffleCount = 45;
     Deck::Deck()
     {
-        Reset();
+        ReorderAndReset();
     }
     
     Deck::~Deck()
@@ -26,10 +26,10 @@ namespace sim
             mCards[card2Idx] = tmpCard1;
         }
         
-        mTopOfDeckIndex = NumCardsInDeck - 1;
+        Reset();
     }
     
-    void Deck::Reset() 
+    void Deck::ReorderAndReset() 
     {
         int deckIndex = 0;
 
@@ -43,8 +43,26 @@ namespace sim
                 deckIndex++;
             }
         }
+        
+        Reset();
+    }
 
+    void Deck::Reset()
+    {
         mTopOfDeckIndex = NumCardsInDeck - 1;
+    }
+    
+    card_t Deck::Draw()
+    {
+        if (mTopOfDeckIndex < 0) 
+        {
+            return NotACard;
+        }
+
+        card_t nextCard = mCards[mTopOfDeckIndex];
+        mTopOfDeckIndex--;
+        
+        return nextCard;
     }
     
     void Deck::Print(int numCards, std::ostream& outputBuffer)

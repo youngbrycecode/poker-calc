@@ -1,12 +1,11 @@
 #include <iostream>
-#include "Cards.h"
 #include "Deck.h"
 
 using namespace sim;
 
 int main() 
 {
-    Random random(1);
+    Random random(0);
 
     Deck deck;
     deck.ShuffleAndReset(Deck::OptimalShuffleCount, random);
