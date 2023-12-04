@@ -71,6 +71,12 @@ namespace sim
     {
         Rank HighRank;
     };
+    
+    struct tStraightFlushData
+    {
+        Suit FlushSuit;
+        Rank HighRank;
+    };
 
     struct tClassificationData
     {
@@ -92,6 +98,7 @@ namespace sim
         tStraightData Straight;
         tFlushData Flush;
         tFourOfAKindData FourOfAKind;
+        tStraightFlushData StraightFlush;
 
         card_t HighestCard;
         card_t LowestCard;
@@ -131,11 +138,13 @@ namespace sim
             void ClassifyAllCards(card_t hand1, card_t hand2, 
                 card_t flop1, card_t flop2, card_t flop3,
                 card_t turn, card_t river);
+            
+            void PrintAllCardsClassification(std::ostream& outputStream);
 
         private:
             tClassificationData mAllCardsClassData;
     };
- 
+
     class PokerGameState
     {
         public:
@@ -179,12 +188,22 @@ namespace sim
                     
                     /// @brief Resets the hand for the next deal cycle.
                     void ClearHand();
+                    
+                    const HandClassification& GetAllCardsClassification(card_t flop1, card_t flop2, card_t flop3,
+                        card_t turn, card_t river)
+                    {
+                        mHandClassificiation.ClassifyAllCards(mHand[0], mHand[1],
+                            flop1, flop2, flop3, turn, river);
+                        
+                        return mHandClassificiation;
+                    }
 
                     static const int HandSize = 2;
 
                 private:
                     card_t mHand[HandSize];
                     int mHandIndex = 0;
+                    HandClassification mHandClassificiation;
             };
 
             std::vector<Hand> mHands;

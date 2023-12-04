@@ -56,10 +56,9 @@ namespace sim
         // Clear the card data.
         memset(mAllCardsClassData.AllCards, 0, sizeof(mAllCardsClassData.AllCards));
         memset(mAllCardsClassData.RankCardCount, 0, sizeof(mAllCardsClassData.RankCardCount));
+        memset(mAllCardsClassData.SuitCardCount, 0, sizeof(mAllCardsClassData.SuitCardCount));
         
         ClassTested classTested[(int)HandClass::MaxClassification] = { Fail };
-        classTested[(int)HandClass::HighCard] = Pass;
-        mAllCardsClassData.HighCard.HighRank = Card::GetRank(mAllCardsClassData.HighestCard);
 
         SetBitFieldsAndAddCard(hand1, mAllCardsClassData);
         SetBitFieldsAndAddCard(hand2, mAllCardsClassData);
@@ -68,8 +67,20 @@ namespace sim
         SetBitFieldsAndAddCard(flop3, mAllCardsClassData);
         SetBitFieldsAndAddCard(turn, mAllCardsClassData);
         SetBitFieldsAndAddCard(river, mAllCardsClassData);
+
+        // Set the high card.
+        classTested[(int)HandClass::HighCard] = Pass;
+        mAllCardsClassData.HighCard.HighRank = Card::GetRank(mAllCardsClassData.HighestCard);
         
         ProcessHand(mAllCardsClassData.AllCards, mAllCardsClassData, classTested);
+        
+        int classificationIndex = static_cast<int>(HandClass::MaxClassification);
+        while (classTested[classificationIndex] == Fail)
+        {
+            classificationIndex--;
+        }
+        
+        mAllCardsClassData.HandClassification = static_cast<HandClass>(classificationIndex);
     }
 
     static void ProcessHand(card_t* cards, tClassificationData& data, ClassTested* classTested)
@@ -84,15 +95,15 @@ namespace sim
             // the possibility for a straight.
             uint32_t straightBitField = std::numeric_limits<uint32_t>::max();
 
-            if (i >= 4)
+            if (i >= 3)
             {
-                if (i >= 5)
+                if (i >= 4)
                 {
-                    straightBitField = 0b11111 << (i - 5);
+                    straightBitField = 0b11111 << (i - 4);
                 }
                 else {
                     // Include the ace bit since it can also count as zero.
-                    straightBitField = 0b1111000000001;
+                    straightBitField = 0b1000000001111;
                 }
             }
 
@@ -117,18 +128,16 @@ namespace sim
                 if (passedBitFieldTest && classTested[(int)HandClass::StraightFlush] == Fail)
                 {
                     classTested[(int)HandClass::StraightFlush] = Pass;
-                    classTested[(int)HandClass::Straight] = Pass;
-                    classTested[(int)HandClass::Flush] = Pass;
 
-                    data.Straight.HighRank = static_cast<Rank>(i);
-                    data.Flush.FlushSuit = static_cast<Suit>(j);
+                    data.StraightFlush.HighRank = static_cast<Rank>(i);
+                    data.StraightFlush.FlushSuit = static_cast<Suit>(j);
                 }
             }
             
             uint32_t numCardsWithRank = data.RankCardCount[i];
             
             // If we got counts higher than 1, record here.
-            if (numCardsWithRank == 2 && classTested[(int)HandClass::OnePair == Fail])
+            if (numCardsWithRank == 2 && classTested[(int)HandClass::OnePair] == Fail)
             {
                 data.OnePair.HighRank = static_cast<Rank>(i);
                 classTested[(int)HandClass::OnePair] = Pass;
@@ -165,6 +174,92 @@ namespace sim
             classTested[(int)HandClass::ThreeOfAKind] == Pass)
         {
             classTested[(int)HandClass::FullHouse] = Pass;
+        }
+    }
+    
+    void HandClassification::PrintAllCardsClassification(std::ostream& outputStream)
+    {
+        switch (mAllCardsClassData.HandClassification)
+        {
+            case HandClass::HighCard:
+                {
+                    card_t randomCardWithRank = Card::CreateCard((Rank)mAllCardsClassData.HighCard.HighRank, Suit::Clubs);
+                    outputStream << "High Card: ";
+                    Card::PrintRank(randomCardWithRank, outputStream);
+                }
+                break;
+            case HandClass::OnePair:
+                {
+                    card_t randomCardWithRank = Card::CreateCard((Rank)mAllCardsClassData.OnePair.HighRank, Suit::Clubs);
+                    outputStream << "One Pair:";
+                    Card::PrintRank(randomCardWithRank, outputStream);
+                }
+                break;
+            case HandClass::TwoPair:
+                {
+                    card_t randomCardWithRank = Card::CreateCard((Rank)mAllCardsClassData.OnePair.HighRank, Suit::Clubs);
+                    card_t randomCardWithRank2 = Card::CreateCard((Rank)mAllCardsClassData.TwoPair.SecondPairRank, Suit::Clubs);
+
+                    outputStream << "Two Pair: ";
+                    Card::PrintRank(randomCardWithRank, outputStream);
+                    Card::PrintRank(randomCardWithRank2, outputStream);
+                }
+                break;
+            case HandClass::ThreeOfAKind:
+                {
+                    card_t randomCardWithRank = Card::CreateCard((Rank)mAllCardsClassData.ThreeOfAKind.HighRank, Suit::Clubs);
+                    outputStream << "Three Of A Kind: ";
+                    Card::PrintRank(randomCardWithRank, outputStream);
+                }
+                break;
+            case HandClass::Straight:
+                {
+                    card_t randomCardWithRank = Card::CreateCard((Rank)mAllCardsClassData.Straight.HighRank, Suit::Clubs);
+                    outputStream << "Straight: ";
+                    Card::PrintRank(randomCardWithRank, outputStream);
+                }
+                break;
+            case HandClass::Flush:
+                {
+                    card_t randomCardWithSuit = Card::CreateCard(Rank::Two, mAllCardsClassData.Flush.FlushSuit);
+                    outputStream << "Flush: ";
+                    Card::PrintSuit(randomCardWithSuit, outputStream);
+                }
+                break;
+            case HandClass::FullHouse:
+                {
+                    card_t randomCardWithRank = Card::CreateCard((Rank)mAllCardsClassData.ThreeOfAKind.HighRank, Suit::Clubs);
+                    card_t randomCardWithRank2 = Card::CreateCard((Rank)mAllCardsClassData.OnePair.HighRank, Suit::Clubs);
+
+                    outputStream << "Full House: 3-";
+                    Card::PrintRank(randomCardWithRank, outputStream);
+                    outputStream << "2- ";
+                    Card::PrintRank(randomCardWithRank2, outputStream);
+                }
+                break;
+            case HandClass::FourOfAKind:
+                {
+                    card_t randomCardWithRank = Card::CreateCard((Rank)mAllCardsClassData.FourOfAKind.HighRank, Suit::Clubs);
+                    outputStream << "Four Of A Kind: ";
+                    Card::PrintRank(randomCardWithRank, outputStream);
+                }
+                break;
+            case HandClass::StraightFlush:
+                {
+                    card_t randomCardWithRank = Card::CreateCard((Rank)mAllCardsClassData.StraightFlush.HighRank, Suit::Clubs);
+                    card_t randomCardWithSuit = Card::CreateCard(Rank::Two, mAllCardsClassData.Flush.FlushSuit);
+                    outputStream << "Straight Flush: S-";
+                    Card::PrintRank(randomCardWithRank, outputStream);
+                    outputStream << "F-";
+                    Card::PrintSuit(randomCardWithSuit, outputStream);
+                }
+
+                break;
+            case HandClass::RoyalFlush:
+                outputStream << "Royal Flush!\n";
+                break;
+            default:
+                break;
         }
     }
 }
