@@ -5,10 +5,10 @@
 namespace sim
 {
     /// @brief 1111 xxxx
-    constexpr card_t RankMask = 0xF;
+    constexpr card_t RankMask = 0x3C;
     
     /// @brief xxxx 11xx
-    constexpr card_t SuitMask = 0x30;
+    constexpr card_t SuitMask = 3;
     
     constexpr int RankBits = 4;
     constexpr int SuitBits = 2;
@@ -41,8 +41,8 @@ namespace sim
     card_t Card::CreateCard(Rank rank, Suit suit) 
     {
         // Use the first couple bits for the rank, and use the 5th and 6th bits for the suit.
-        card_t resultCard = (card_t)rank;
-        resultCard |= ((card_t)suit) << RankBits;
+        card_t resultCard = (card_t)suit;
+        resultCard |= ((card_t)rank) << SuitBits;
 
         return resultCard;
     }
@@ -70,11 +70,11 @@ namespace sim
     
     Rank Card::GetRank(card_t card)
     {
-        return (Rank)(card & RankMask);
+        return (Rank)((card & RankMask) >> SuitBits);
     }
     
     Suit Card::GetSuit(card_t card)
     {
-        return (Suit) ((card & SuitMask) >> RankBits);
+        return (Suit)(card & SuitMask);
     }
 }

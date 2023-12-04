@@ -27,6 +27,30 @@ TEST(DeckTests, TestCreateCards)
     ASSERT_EQ(Card::GetSuit(queenDiamonds), Suit::Diamonds);
 }
 
+/// @brief Test the intentional property that cards of greater rank will be higher
+/// values than cards of any other rank.
+TEST(DeckTests, CardOrderTests)
+{
+    // Iterate through every rank, and make sure that every card in this rank is 
+    card_t previousMaxCard = 0;
+
+    for (int i = 0; i < (int)Rank::MaxRank; i++)
+    {
+        card_t maxCardAtRank = 0;
+        for (int j = 0; j < (int)Suit::MaxSuit; j++)
+        {
+            card_t currentCard = Card::CreateCard((Rank)i, (Suit)j);
+            if (currentCard > maxCardAtRank)
+            {
+                maxCardAtRank = currentCard;
+            }
+        }
+        
+        ASSERT_GT(maxCardAtRank, previousMaxCard);
+        previousMaxCard = maxCardAtRank;
+    }
+}
+
 TEST(DeckTests, TestDeckResetOrder)
 {
     Deck deck;

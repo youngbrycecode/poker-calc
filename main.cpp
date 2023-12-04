@@ -1,15 +1,15 @@
 #include <iostream>
-#include "Deck.h"
+#include "Poker.h"
 
 using namespace sim;
 
 int main() 
 {
-    Random random(0);
-
-    Deck deck;
-    deck.ShuffleAndReset(Deck::OptimalShuffleCount, random);
+    PokerGameState pokerGame(4);
+    pokerGame.Deal();
+    pokerGame.DealFlop();
+    pokerGame.DealTurn();
+    pokerGame.DealRiver();
     
-    deck.Print(10, std::cout);
     return 0;
 }
