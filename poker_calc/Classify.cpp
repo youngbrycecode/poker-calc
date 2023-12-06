@@ -13,6 +13,8 @@ namespace sim
 
         void SetBitFieldsAndAddCard(card_t card, tClassificationData& data)
         {
+            if (card == NotACard) return;
+
             data.AllCards[card] = 1;
            
             const int rank = static_cast<int>(Card::GetRank(card));
@@ -74,7 +76,7 @@ namespace sim
         
         ProcessHand(mAllCardsClassData.AllCards, mAllCardsClassData, classTested);
         
-        int classificationIndex = static_cast<int>(HandClass::MaxClassification);
+        int classificationIndex = static_cast<int>(HandClass::MaxClassification) - 1;
         while (classTested[classificationIndex] == Fail)
         {
             classificationIndex--;
@@ -85,8 +87,6 @@ namespace sim
 
     static void ProcessHand(card_t* cards, tClassificationData& data, ClassTested* classTested)
     {
-        int currentRankStreak = 0;
-
         for (int i = static_cast<int>(Card::GetRank(data.HighestCard)); 
              i >= static_cast<int>(Card::GetRank(data.LowestCard)); i--)
         {

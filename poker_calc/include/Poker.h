@@ -127,6 +127,7 @@ namespace sim
 
             /// @brief Classify the cards. Creates classifications for 
             /// preflop, postflop, with turn, and with river.
+            /// Use NotACard if you don't want to add the card to the hand.
             /// @param hand1 
             /// @param hand2 
             /// @param flop1 
@@ -139,6 +140,8 @@ namespace sim
                 card_t turn, card_t river);
             
             void PrintAllCardsClassification(std::ostream& outputStream);
+
+            HandClass GetClassification() const { return mAllCardsClassData.HandClassification; }
 
         private:
             tClassificationData mAllCardsClassData;

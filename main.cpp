@@ -20,7 +20,7 @@ int main()
     card_t turn = Card::CreateCard(Rank::Three, Suit::Hearts);
     card_t river = Card::CreateCard(Rank::Ace, Suit::Hearts);
 
-    classification.ClassifyAllCards(hand1, hand2, flop1, flop2, flop3, turn, river);
+    classification.ClassifyAllCards(hand1, hand2, flop1, flop2, flop3, NotACard, NotACard);
     classification.PrintAllCardsClassification(std::cout);
     
     return 0;
