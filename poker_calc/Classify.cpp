@@ -1,9 +1,6 @@
 #include "Poker.h"
 #include <string.h>
 
-using std::max;
-using std::min;
-
 namespace sim 
 {
     enum ClassTested : uint8_t

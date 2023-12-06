@@ -3,14 +3,9 @@
 
 namespace sim
 {
-    int Deck::OptimalShuffleCount = 45;
     Deck::Deck()
     {
         ReorderAndReset();
-    }
-    
-    Deck::~Deck()
-    {
     }
     
     void Deck::ShuffleAndReset(int nTimes, Random& random)

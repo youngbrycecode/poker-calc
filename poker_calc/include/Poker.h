@@ -123,8 +123,7 @@ namespace sim
     class HandClassification 
     {
         public:
-            HandClassification() {}
-            virtual ~HandClassification() {}
+            HandClassification() = default;
 
             /// @brief Classify the cards. Creates classifications for 
             /// preflop, postflop, with turn, and with river.
@@ -179,8 +178,7 @@ namespace sim
             class Hand 
             {
                 public:
-                    Hand();
-                    virtual ~Hand();
+                    Hand() = default;
                     
                     /// @brief Puts a card in the hand.
                     /// @param card 
@@ -192,18 +190,18 @@ namespace sim
                     const HandClassification& GetAllCardsClassification(card_t flop1, card_t flop2, card_t flop3,
                         card_t turn, card_t river)
                     {
-                        mHandClassificiation.ClassifyAllCards(mHand[0], mHand[1],
+                        mHandClassification.ClassifyAllCards(mHand[0], mHand[1],
                             flop1, flop2, flop3, turn, river);
                         
-                        return mHandClassificiation;
+                        return mHandClassification;
                     }
 
-                    static const int HandSize = 2;
+                    static constexpr int HandSize = 2;
 
                 private:
                     card_t mHand[HandSize];
                     int mHandIndex = 0;
-                    HandClassification mHandClassificiation;
+                    HandClassification mHandClassification;
             };
 
             std::vector<Hand> mHands;

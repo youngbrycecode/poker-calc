@@ -1,16 +1,15 @@
 #include "Poker.h"
 
+#include <string>
+
 namespace sim 
 {
     PokerGameState::PokerGameState(int numPlayers, int seed)
-        : mHands(numPlayers),
-          mRandom(seed)
+        : mRandom(seed), mHands(numPlayers)
     {
     }
     
-    PokerGameState::~PokerGameState()
-    {
-    }
+    PokerGameState::~PokerGameState() = default;
     
     void PokerGameState::Deal()
     {
@@ -18,7 +17,7 @@ namespace sim
         {
             for (auto& hand : mHands)
             {
-                card_t nextCard = mDeck.Draw();
+                const card_t nextCard = mDeck.Draw();
                 hand.DealCard(nextCard);
             }
         }
@@ -49,15 +48,7 @@ namespace sim
     {
         mDeck.ShuffleAndReset(Deck::OptimalShuffleCount, mRandom);
     }
-    
-    PokerGameState::Hand::Hand()
-    {
-    }
-    
-    PokerGameState::Hand::~Hand()
-    {
-    }
-    
+
     void PokerGameState::Hand::DealCard(card_t card)
     {
         if (mHandIndex >= HandSize)

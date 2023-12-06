@@ -13,7 +13,6 @@ namespace sim
     {
         public:
             Deck();
-            virtual ~Deck();
             
             /// @brief Shuffles the cards and resets the deck.
             /// @param nTimes 
@@ -36,14 +35,15 @@ namespace sim
             void Print(int numCards, std::ostream& outputBuffer);
             
             /// @brief Because random swaps of the cards in the deck
-            /// is an irreducable markov chain, it would require infinite
+            /// is a non-reducible markov chain, it would require infinite
             /// swaps to be sure that any deck permeation N is equally likely
             /// to occur as any other N! permeation.
             /// We'd like to approximate the shuffle such that the odds of reordering any
             /// random card in the deck is 51/52.
             /// (1/2) * log(10; 52) * 52 =/ 45;
             /// So to perform the shuffle, we will swap 45 random cards by default.
-            static int OptimalShuffleCount;
+            static constexpr int OptimalShuffleCount = 45;
+
 
         private:
             card_t mCards[NumCardsInDeck];
