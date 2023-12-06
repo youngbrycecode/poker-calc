@@ -48,7 +48,23 @@ namespace sim
             static void PrintRank(card_t card, std::ostream& outBuffer);
             static void PrintSuit(card_t card, std::ostream& outBuffer);
 
-            static Rank GetRank(card_t card);
-            static Suit GetSuit(card_t card);
+			/// @brief 1111 xxxx
+			static constexpr card_t RankMask = 0x3C;
+			
+			/// @brief xxxx 11xx
+			static constexpr card_t SuitMask = 3;
+			
+			static constexpr int RankBits = 4;
+			static constexpr int SuitBits = 2;
+
+            inline static Rank GetRank(card_t card)
+            {
+				return static_cast<Rank>((card & RankMask) >> SuitBits);
+            }
+
+            inline static Suit GetSuit(card_t card)
+            {
+                return static_cast<Suit>(card & SuitMask);
+            }
     };
 }

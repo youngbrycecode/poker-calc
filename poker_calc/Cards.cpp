@@ -4,15 +4,6 @@
 
 namespace sim
 {
-    /// @brief 1111 xxxx
-    constexpr card_t RankMask = 0xF;
-    
-    /// @brief xxxx 11xx
-    constexpr card_t SuitMask = 0x30;
-    
-    constexpr int RankBits = 4;
-    constexpr int SuitBits = 2;
-
     static std::vector<std::string> RankStrings 
     {
         "Two",
@@ -41,8 +32,8 @@ namespace sim
     card_t Card::CreateCard(Rank rank, Suit suit) 
     {
         // Use the first couple bits for the rank, and use the 5th and 6th bits for the suit.
-        card_t resultCard = (card_t)rank;
-        resultCard |= ((card_t)suit) << RankBits;
+        card_t resultCard = (card_t)suit;
+        resultCard |= ((card_t)rank) << SuitBits;
 
         return resultCard;
     }
@@ -66,15 +57,5 @@ namespace sim
     void Card::PrintSuit(card_t card, std::ostream& outBuffer)
     {
         outBuffer << SuitStrings[(int)GetSuit(card)] << "\n";
-    }
-    
-    Rank Card::GetRank(card_t card)
-    {
-        return (Rank)(card & RankMask);
-    }
-    
-    Suit Card::GetSuit(card_t card)
-    {
-        return (Suit) ((card & SuitMask) >> RankBits);
     }
 }

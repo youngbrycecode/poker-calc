@@ -1,3 +1,6 @@
 /build/*
 /.vscode/*
 run.sh
+.vs/*
+out/*
+php33Mc7a.arff
