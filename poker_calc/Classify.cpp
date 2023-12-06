@@ -3,35 +3,38 @@
 
 namespace sim 
 {
-    enum ClassTested : uint8_t
+    namespace
     {
-        Fail,
-        Pass
-    };
-
-    static inline void SetBitFieldsAndAddCard(card_t card, tClassificationData& data)
-    {
-        data.AllCards[card] = 1;
-        
-        int rank = static_cast<int>(Card::GetRank(card));
-        int suit = static_cast<int>(Card::GetSuit(card));
-
-        data.RankBitFields[rank] |= 1 << suit;
-        data.SuitBitFields[suit] |= 1 << rank;
-
-        data.RankBitField |= 1 << rank;
-        
-        data.RankCardCount[rank]++;
-        data.SuitCardCount[suit]++;
-        
-        if (card > data.HighestCard)
+        enum ClassTested : uint8_t
         {
-            data.HighestCard = card;
-        }
-        
-        if (card < data.LowestCard)
+            Fail,
+            Pass
+        };
+
+        void SetBitFieldsAndAddCard(card_t card, tClassificationData& data)
         {
-            data.LowestCard = card;
+            data.AllCards[card] = 1;
+           
+            const int rank = static_cast<int>(Card::GetRank(card));
+            const int suit = static_cast<int>(Card::GetSuit(card));
+
+            data.RankBitFields[rank] |= 1 << suit;
+            data.SuitBitFields[suit] |= 1 << rank;
+
+            data.RankBitField |= 1 << rank;
+           
+            data.RankCardCount[rank]++;
+            data.SuitCardCount[suit]++;
+           
+            if (card > data.HighestCard)
+            {
+                data.HighestCard = card;
+            }
+           
+            if (card < data.LowestCard)
+            {
+                data.LowestCard = card;
+            }
         }
     }
 
@@ -55,7 +58,7 @@ namespace sim
         memset(mAllCardsClassData.RankCardCount, 0, sizeof(mAllCardsClassData.RankCardCount));
         memset(mAllCardsClassData.SuitCardCount, 0, sizeof(mAllCardsClassData.SuitCardCount));
         
-        ClassTested classTested[(int)HandClass::MaxClassification] = { Fail };
+        ClassTested classTested[static_cast<int>(HandClass::MaxClassification)] = { Fail };
 
         SetBitFieldsAndAddCard(hand1, mAllCardsClassData);
         SetBitFieldsAndAddCard(hand2, mAllCardsClassData);
@@ -66,7 +69,7 @@ namespace sim
         SetBitFieldsAndAddCard(river, mAllCardsClassData);
 
         // Set the high card.
-        classTested[(int)HandClass::HighCard] = Pass;
+        classTested[static_cast<int>(HandClass::HighCard)] = Pass;
         mAllCardsClassData.HighCard.HighRank = Card::GetRank(mAllCardsClassData.HighestCard);
         
         ProcessHand(mAllCardsClassData.AllCards, mAllCardsClassData, classTested);
@@ -106,53 +109,53 @@ namespace sim
 
             // Check for a standard straight at this rank.
             if ((data.RankBitField & straightBitField) == straightBitField &&
-                 classTested[(int)HandClass::Straight] == Fail)
+                 classTested[static_cast<int>(HandClass::Straight)] == Fail)
             {
                 data.Straight.HighRank = static_cast<Rank>(i);
-                classTested[(int)HandClass::Straight] = Pass;
+                classTested[static_cast<int>(HandClass::Straight)] = Pass;
             }
             
             // Check for straight flush and royal flush.
             for (int j = 0; j < static_cast<int>(Suit::MaxSuit); j++)
             {
-                bool passedBitFieldTest = (data.SuitBitFields[j] & straightBitField) == straightBitField;
+                const bool passedBitFieldTest = (data.SuitBitFields[j] & straightBitField) == straightBitField;
 
                 if (passedBitFieldTest && i == static_cast<int>(Rank::Ace))
                 {
-                    classTested[(int)HandClass::RoyalFlush] = Pass;
+                    classTested[static_cast<int>(HandClass::RoyalFlush)] = Pass;
                 }
 
-                if (passedBitFieldTest && classTested[(int)HandClass::StraightFlush] == Fail)
+                if (passedBitFieldTest && classTested[static_cast<int>(HandClass::StraightFlush)] == Fail)
                 {
-                    classTested[(int)HandClass::StraightFlush] = Pass;
+                    classTested[static_cast<int>(HandClass::StraightFlush)] = Pass;
 
                     data.StraightFlush.HighRank = static_cast<Rank>(i);
                     data.StraightFlush.FlushSuit = static_cast<Suit>(j);
                 }
             }
             
-            uint32_t numCardsWithRank = data.RankCardCount[i];
+            const uint32_t numCardsWithRank = data.RankCardCount[i];
             
             // If we got counts higher than 1, record here.
-            if (numCardsWithRank == 2 && classTested[(int)HandClass::OnePair] == Fail)
+            if (numCardsWithRank == 2 && classTested[static_cast<int>(HandClass::OnePair)] == Fail)
             {
                 data.OnePair.HighRank = static_cast<Rank>(i);
-                classTested[(int)HandClass::OnePair] = Pass;
+                classTested[static_cast<int>(HandClass::OnePair)] = Pass;
             }
-            else if (numCardsWithRank == 2 && classTested[(int)HandClass::TwoPair] == Fail)
+            else if (numCardsWithRank == 2 && classTested[static_cast<int>(HandClass::TwoPair)] == Fail)
             {
                 data.TwoPair.SecondPairRank = static_cast<Rank>(i);
-                classTested[(int)HandClass::TwoPair] = Pass;
+                classTested[static_cast<int>(HandClass::TwoPair)] = Pass;
             }
-            else if (numCardsWithRank == 3 && classTested[(int)HandClass::ThreeOfAKind] == Fail)
+            else if (numCardsWithRank == 3 && classTested[static_cast<int>(HandClass::ThreeOfAKind)] == Fail)
             {
                 data.ThreeOfAKind.HighRank = static_cast<Rank>(i);
-                classTested[(int)HandClass::ThreeOfAKind] = Pass;
+                classTested[static_cast<int>(HandClass::ThreeOfAKind)] = Pass;
             }
-            else if (numCardsWithRank == 4 && classTested[(int)HandClass::FourOfAKind] == Fail)
+            else if (numCardsWithRank == 4 && classTested[static_cast<int>(HandClass::FourOfAKind)] == Fail)
             {
                 data.FourOfAKind.HighRank = static_cast<Rank>(i);
-                classTested[(int)HandClass::FourOfAKind] = Pass;
+                classTested[static_cast<int>(HandClass::FourOfAKind)] = Pass;
             }
         }
         
@@ -161,16 +164,16 @@ namespace sim
         {
             if (data.SuitCardCount[i] >= 5)
             {
-                classTested[(int)HandClass::Flush] = Pass;
+                classTested[static_cast<int>(HandClass::Flush)] = Pass;
                 data.Flush.FlushSuit = static_cast<Suit>(i);
             }
         }
         
         // Set full house data.
-        if (classTested[(int)HandClass::OnePair] == Pass &&
-            classTested[(int)HandClass::ThreeOfAKind] == Pass)
+        if (classTested[static_cast<int>(HandClass::OnePair)] == Pass &&
+            classTested[static_cast<int>(HandClass::ThreeOfAKind)] == Pass)
         {
-            classTested[(int)HandClass::FullHouse] = Pass;
+            classTested[static_cast<int>(HandClass::FullHouse)] = Pass;
         }
     }
     

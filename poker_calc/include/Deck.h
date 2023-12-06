@@ -32,7 +32,7 @@ namespace sim
             /// @brief Prints the top n cards from the deck
             /// @param numCards the number of cards to print
             /// @param outputBuffer 
-            void Print(int numCards, std::ostream& outputBuffer);
+            void Print(int numCards, std::ostream& outputBuffer) const;
             
             /// @brief Because random swaps of the cards in the deck
             /// is a non-reducible markov chain, it would require infinite
