@@ -4,15 +4,6 @@
 
 namespace sim
 {
-    /// @brief 1111 xxxx
-    constexpr card_t RankMask = 0x3C;
-    
-    /// @brief xxxx 11xx
-    constexpr card_t SuitMask = 3;
-    
-    constexpr int RankBits = 4;
-    constexpr int SuitBits = 2;
-
     static std::vector<std::string> RankStrings 
     {
         "Two",
@@ -66,15 +57,5 @@ namespace sim
     void Card::PrintSuit(card_t card, std::ostream& outBuffer)
     {
         outBuffer << SuitStrings[(int)GetSuit(card)] << "\n";
-    }
-    
-    Rank Card::GetRank(card_t card)
-    {
-        return (Rank)((card & RankMask) >> SuitBits);
-    }
-    
-    Suit Card::GetSuit(card_t card)
-    {
-        return (Suit)(card & SuitMask);
     }
 }

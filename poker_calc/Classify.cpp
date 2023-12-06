@@ -1,22 +1,23 @@
 #include "Poker.h"
 #include <string.h>
+#include <algorithm>
 
 namespace sim 
 {
     namespace
     {
+		constexpr uint32_t StraightBitField = std::numeric_limits<uint32_t>::max();
+
         enum ClassTested : uint8_t
         {
             Fail,
             Pass
         };
 
-        void SetBitFieldsAndAddCard(card_t card, tClassificationData& data)
+        inline void SetBitFieldsAndAddCard(card_t card, tClassificationData& data, int cardIndex)
         {
             if (card == NotACard) return;
 
-            data.AllCards[card] = 1;
-           
             const int rank = static_cast<int>(Card::GetRank(card));
             const int suit = static_cast<int>(Card::GetSuit(card));
 
@@ -40,7 +41,7 @@ namespace sim
         }
     }
 
-    static void ProcessHand(card_t* cards, tClassificationData& data, 
+    static void ProcessHand(tClassificationData& data, 
                               ClassTested* classUsed);
 
     void HandClassification::ClassifyAllCards(card_t hand1, card_t hand2,
@@ -56,25 +57,25 @@ namespace sim
         memset(mAllCardsClassData.SuitBitFields, 0, sizeof(mAllCardsClassData.SuitBitFields));
         
         // Clear the card data.
-        memset(mAllCardsClassData.AllCards, 0, sizeof(mAllCardsClassData.AllCards));
         memset(mAllCardsClassData.RankCardCount, 0, sizeof(mAllCardsClassData.RankCardCount));
         memset(mAllCardsClassData.SuitCardCount, 0, sizeof(mAllCardsClassData.SuitCardCount));
         
         ClassTested classTested[static_cast<int>(HandClass::MaxClassification)] = { Fail };
 
-        SetBitFieldsAndAddCard(hand1, mAllCardsClassData);
-        SetBitFieldsAndAddCard(hand2, mAllCardsClassData);
-        SetBitFieldsAndAddCard(flop1, mAllCardsClassData);
-        SetBitFieldsAndAddCard(flop2, mAllCardsClassData);
-        SetBitFieldsAndAddCard(flop3, mAllCardsClassData);
-        SetBitFieldsAndAddCard(turn, mAllCardsClassData);
-        SetBitFieldsAndAddCard(river, mAllCardsClassData);
+        int cardIdx = 0;
+        SetBitFieldsAndAddCard(hand1, mAllCardsClassData, cardIdx++);
+        SetBitFieldsAndAddCard(hand2, mAllCardsClassData, cardIdx++);
+        SetBitFieldsAndAddCard(flop1, mAllCardsClassData, cardIdx++);
+        SetBitFieldsAndAddCard(flop2, mAllCardsClassData, cardIdx++);
+        SetBitFieldsAndAddCard(flop3, mAllCardsClassData, cardIdx++);
+        SetBitFieldsAndAddCard(turn, mAllCardsClassData, cardIdx++);
+        SetBitFieldsAndAddCard(river, mAllCardsClassData, cardIdx++);
 
         // Set the high card.
         classTested[static_cast<int>(HandClass::HighCard)] = Pass;
         mAllCardsClassData.HighCard.HighRank = Card::GetRank(mAllCardsClassData.HighestCard);
         
-        ProcessHand(mAllCardsClassData.AllCards, mAllCardsClassData, classTested);
+        ProcessHand(mAllCardsClassData, classTested);
         
         int classificationIndex = static_cast<int>(HandClass::MaxClassification) - 1;
         while (classTested[classificationIndex] == Fail)
@@ -85,21 +86,21 @@ namespace sim
         mAllCardsClassData.HandClassification = static_cast<HandClass>(classificationIndex);
     }
 
-    static void ProcessHand(card_t* cards, tClassificationData& data, ClassTested* classTested)
+    static void ProcessHand(tClassificationData& data, ClassTested* classTested)
     {
-        for (int i = static_cast<int>(Card::GetRank(data.HighestCard)); 
-             i >= static_cast<int>(Card::GetRank(data.LowestCard)); i--)
+        for (int cardRank = static_cast<int>(Rank::Ace); 
+             cardRank >= static_cast<int>(Rank::Two); cardRank--)
         {
             // Create straight bit field (to be used later).
             // Init to max value to ensure remove the need for another boolean checking if we have
             // the possibility for a straight.
-            uint32_t straightBitField = std::numeric_limits<uint32_t>::max();
+            uint32_t straightBitField = StraightBitField;
 
-            if (i >= 3)
+            if (cardRank >= 3)
             {
-                if (i >= 4)
+                if (cardRank >= 4)
                 {
-                    straightBitField = 0b11111 << (i - 4);
+                    straightBitField = 0b11111 << (cardRank - 4);
                 }
                 else {
                     // Include the ace bit since it can also count as zero.
@@ -111,7 +112,7 @@ namespace sim
             if ((data.RankBitField & straightBitField) == straightBitField &&
                  classTested[static_cast<int>(HandClass::Straight)] == Fail)
             {
-                data.Straight.HighRank = static_cast<Rank>(i);
+                data.Straight.HighRank = static_cast<Rank>(cardRank);
                 classTested[static_cast<int>(HandClass::Straight)] = Pass;
             }
             
@@ -120,7 +121,7 @@ namespace sim
             {
                 const bool passedBitFieldTest = (data.SuitBitFields[j] & straightBitField) == straightBitField;
 
-                if (passedBitFieldTest && i == static_cast<int>(Rank::Ace))
+                if (passedBitFieldTest && cardRank == static_cast<int>(Rank::Ace))
                 {
                     classTested[static_cast<int>(HandClass::RoyalFlush)] = Pass;
                 }
@@ -129,32 +130,32 @@ namespace sim
                 {
                     classTested[static_cast<int>(HandClass::StraightFlush)] = Pass;
 
-                    data.StraightFlush.HighRank = static_cast<Rank>(i);
+                    data.StraightFlush.HighRank = static_cast<Rank>(cardRank);
                     data.StraightFlush.FlushSuit = static_cast<Suit>(j);
                 }
             }
             
-            const uint32_t numCardsWithRank = data.RankCardCount[i];
+            const uint32_t numCardsWithRank = data.RankCardCount[cardRank];
             
             // If we got counts higher than 1, record here.
             if (numCardsWithRank == 2 && classTested[static_cast<int>(HandClass::OnePair)] == Fail)
             {
-                data.OnePair.HighRank = static_cast<Rank>(i);
+                data.OnePair.HighRank = static_cast<Rank>(cardRank);
                 classTested[static_cast<int>(HandClass::OnePair)] = Pass;
             }
             else if (numCardsWithRank == 2 && classTested[static_cast<int>(HandClass::TwoPair)] == Fail)
             {
-                data.TwoPair.SecondPairRank = static_cast<Rank>(i);
+                data.TwoPair.SecondPairRank = static_cast<Rank>(cardRank);
                 classTested[static_cast<int>(HandClass::TwoPair)] = Pass;
             }
             else if (numCardsWithRank == 3 && classTested[static_cast<int>(HandClass::ThreeOfAKind)] == Fail)
             {
-                data.ThreeOfAKind.HighRank = static_cast<Rank>(i);
+                data.ThreeOfAKind.HighRank = static_cast<Rank>(cardRank);
                 classTested[static_cast<int>(HandClass::ThreeOfAKind)] = Pass;
             }
             else if (numCardsWithRank == 4 && classTested[static_cast<int>(HandClass::FourOfAKind)] == Fail)
             {
-                data.FourOfAKind.HighRank = static_cast<Rank>(i);
+                data.FourOfAKind.HighRank = static_cast<Rank>(cardRank);
                 classTested[static_cast<int>(HandClass::FourOfAKind)] = Pass;
             }
         }

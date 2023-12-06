@@ -82,14 +82,6 @@ namespace sim
     {
         HandClass HandClassification;
 
-        /// @brief 2^6 is 64, so we store an array of 64 cards.
-        /// When starting the classification, instead of sorting the cards,
-        /// its faster to iterate through a small list.
-        /// The indices of this array are set at the start of the function call, then
-        /// they must be cleared at the end.
-        /// NOTE: this array should not be written to without restoring it back to an all zero state.
-        uint8_t AllCards[64];
-
         // Classification data.
         tHighCardData HighCard;
         tOnePairData OnePair;
@@ -109,13 +101,13 @@ namespace sim
         uint32_t RankBitFields[static_cast<int>(Rank::MaxRank)];
         uint32_t SuitBitFields[static_cast<int>(Suit::MaxSuit)];
         
-        /// @brief This rank bit field is independent of suit.
-        /// A value is always set if the rank appears.
-        uint32_t RankBitField;
-        
         // The number of cards at the current rank.
         uint32_t RankCardCount[static_cast<int>(Rank::MaxRank)];
         uint32_t SuitCardCount[static_cast<int>(Suit::MaxSuit)];
+        
+        /// @brief This rank bit field is independent of suit.
+        /// A value is always set if the rank appears.
+        uint32_t RankBitField;
     };
     
     #pragma endregion HAND_TYPE_STRUCTS

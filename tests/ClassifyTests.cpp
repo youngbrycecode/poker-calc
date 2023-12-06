@@ -66,7 +66,7 @@ TEST(ClassifyTests, ClassifySpeedTests)
    const card_t turn = Card::CreateCard(Rank::Three, Suit::Hearts);
    const card_t river = Card::CreateCard(Rank::Two, Suit::Hearts);
 
-   constexpr int numClassifies = 2e7;
+   constexpr int numClassifies = 5e7;
 
    auto start = std::chrono::high_resolution_clock::now();
    for (int i = 0; i < numClassifies; i++)
@@ -87,7 +87,6 @@ TEST(ClassifyTests, ClassifySpeedTests)
 /// Test data is not included in this git repo: https://www.openml.org/search?type=data&sort=runs&id=1567&status=active
 TEST(ClassifyTests, FiveCardPokerHandClassificationTest)
 {
-   system("dir");
    // Load the dataset into an fstream.
    std::fstream dataSet("./php33Mc7a.arff", std::ios::in);
    std::string currentLine;
