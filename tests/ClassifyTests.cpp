@@ -2,6 +2,7 @@
 #include <fstream>
 #include <chrono>
 #include "Deck.h"
+#include "LookupTables.h"
 #include "Poker.h"
 #include "src/gtest-internal-inl.h"
 
@@ -71,7 +72,7 @@ TEST(ClassifyTests, ClassifySpeedTests)
 	auto start = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < numClassifies; i++)
 	{
-		classification.ClassifyAllCards(hand1, hand2, flop1, flop2, flop3, turn, river);
+		classification.ClassifyAllCardsFast(hand1, hand2, flop1, flop2, flop3, turn, river);
 	}
 	auto finish = std::chrono::high_resolution_clock::now();
 
@@ -107,7 +108,7 @@ TEST(ClassifyTests, FiveCardPokerHandClassificationTest)
 
 		card_t hand1, hand2, flop1, flop2, flop3;
 		HandClass expectedClassification = LoadCardsAndClassification(currentLine.c_str(), hand1, hand2, flop1, flop2, flop3);
-		classifier.ClassifyAllCards(hand1, hand2, flop1, flop2, flop3, NotACard, NotACard);
+		classifier.ClassifyAllCardsFast(hand1, hand2, flop1, flop2, flop3, NotACard, NotACard);
 
 		if (expectedClassification != classifier.GetClassification())
 		{
@@ -128,6 +129,7 @@ TEST(ClassifyTests, FiveCardPokerHandClassificationTest)
 
 int main(int argc, char** argv)
 {
+	InitLookupTables();
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }

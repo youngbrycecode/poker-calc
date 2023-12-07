@@ -1,27 +1,23 @@
 #include <iostream>
+#include <fstream>
+
+#include "LookupTables.h"
 #include "Poker.h"
 
 using namespace sim;
 
 int main() 
 {
-    PokerGameState pokerGame(4);
-    pokerGame.Deal();
-    pokerGame.DealFlop();
-    pokerGame.DealTurn();
-    pokerGame.DealRiver();
-    
-    HandClassification classification;
-    card_t hand1 = Card::CreateCard(Rank::Ace, Suit::Hearts);
-    card_t hand2 = Card::CreateCard(Rank::Ace, Suit::Diamonds);
-    card_t flop1 = Card::CreateCard(Rank::Ace, Suit::Spades);
-    card_t flop2 = Card::CreateCard(Rank::Five, Suit::Hearts);
-    card_t flop3 = Card::CreateCard(Rank::Five, Suit::Diamonds);
-    card_t turn = Card::CreateCard(Rank::Three, Suit::Hearts);
-    card_t river = Card::CreateCard(Rank::Ace, Suit::Hearts);
+    InitLookupTables();
 
-    classification.ClassifyAllCards(hand1, hand2, flop1, flop2, flop3, NotACard, NotACard);
-    classification.PrintAllCardsClassification(std::cout);
-    
+    const card_t h1 = Card::CreateCard(Rank::Two, Suit::Spades);
+    const card_t h2 = Card::CreateCard(Rank::Three, Suit::Hearts);
+    const card_t f1 = Card::CreateCard(Rank::Four, Suit::Clubs);
+    const card_t f2 = Card::CreateCard(Rank::Five, Suit::Diamonds);
+    const card_t f3 = Card::CreateCard(Rank::Six, Suit::Spades);
+
+    HandClassification classification;
+    classification.ClassifyAllCardsFast(h1, h2, f1, f2, f3, NotACard, NotACard);
+
     return 0;
 }
