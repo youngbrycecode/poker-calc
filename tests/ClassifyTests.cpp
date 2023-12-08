@@ -110,7 +110,9 @@ TEST(ClassifyTests, FiveCardPokerHandClassificationTest)
 		HandClass expectedClassification = LoadCardsAndClassification(currentLine.c_str(), hand1, hand2, flop1, flop2, flop3);
 		classifier.ClassifyAllCardsFast(hand1, hand2, flop1, flop2, flop3, NotACard, NotACard);
 
-		if (expectedClassification != classifier.GetClassification())
+		tClassificationData& classificationData = classifier.GetClassificationData();
+
+		if (expectedClassification != classificationData.HandClassification)
 		{
 			Card::Print(hand1, std::cout);
 			Card::Print(hand2, std::cout);
@@ -120,7 +122,7 @@ TEST(ClassifyTests, FiveCardPokerHandClassificationTest)
 
 			std::cout << "\n";
 			classifier.PrintAllCardsClassification(std::cout);
-			ASSERT_EQ(expectedClassification, classifier.GetClassification());
+			ASSERT_EQ(expectedClassification, classificationData.HandClassification);
 		}
 	} while (std::getline(dataSet, currentLine));
 
@@ -131,5 +133,8 @@ int main(int argc, char** argv)
 {
 	InitLookupTables();
 	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
+
+	const auto ret = RUN_ALL_TESTS();
+	CleanupLookupTables();
+	return ret;
 }

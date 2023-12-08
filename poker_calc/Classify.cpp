@@ -2,13 +2,15 @@
 #include <string.h>
 #include <algorithm>
 
+#include "LookupTables.h"
+
 namespace sim 
 {
 	 namespace
 	 {
 		  constexpr uint32_t Max32BitInt = std::numeric_limits<uint32_t>::max();
 		  constexpr uint32_t StraightFlushBitMask = 0xFFFFF;
-
+		  constexpr uint32_t FlushBitMask = 0b1111111111111;
 
 		  void SetBitFieldsAndAddCard(card_t card, tClassificationData& data)
 		  {
@@ -17,7 +19,7 @@ namespace sim
 				const int rank = static_cast<int>(Card::GetRank(card));
 				const int suit = static_cast<int>(Card::GetSuit(card));
 
-				data.CardsBitField |= (1 << suit) << (rank << 2);
+				data.CardsBitField |= (1ull << suit) << (rank << 2);
 
 				data.RankBitFields[rank] |= 1 << suit;
 				data.SuitBitFields[suit] |= 1 << rank;
@@ -37,6 +39,28 @@ namespace sim
 					 data.LowestCard = card;
 				}
 		  }
+
+		  void SetBitFieldsAndAddCardFast(card_t card, tClassificationData& data)
+		  {
+				if (card == NotACard) return;
+
+				const int rank = static_cast<int>(Card::GetRank(card));
+				const int suit = static_cast<int>(Card::GetSuit(card));
+
+				data.CardsBitField |= (1ULL << suit) << (rank << 2);
+				data.SuitCardCount[suit]++;
+
+				if (card > data.HighestCard)
+				{
+					 data.HighestCard = card;
+				}
+			  
+				if (card < data.LowestCard)
+				{
+					 data.LowestCard = card;
+				}
+		  }
+
 
 		  void ProcessHand(tClassificationData& data);
 
@@ -90,26 +114,21 @@ namespace sim
 															 card_t turn, card_t river)
 	 {
 		  // Clear the bit fields.
-		  mAllCardsClassData.RankBitField = 0;
 		  mAllCardsClassData.HighestCard = hand1;
 		  mAllCardsClassData.LowestCard = hand1;
 		  mAllCardsClassData.CardsBitField = 0;
 
-		  memset(mAllCardsClassData.RankBitFields, 0, sizeof(mAllCardsClassData.RankBitFields));
-		  memset(mAllCardsClassData.SuitBitFields, 0, sizeof(mAllCardsClassData.SuitBitFields));
-		  
-		  // Clear the card data.
-		  memset(mAllCardsClassData.RankCardCount, 0, sizeof(mAllCardsClassData.RankCardCount));
-		  memset(mAllCardsClassData.SuitCardCount, 0, sizeof(mAllCardsClassData.SuitCardCount));
+		  static_assert(sizeof(mAllCardsClassData.SuitCardCount) == sizeof(uint32_t));
+		  *(reinterpret_cast<uint32_t*>(mAllCardsClassData.SuitCardCount)) = 0;
 		  memset(mAllCardsClassData.ClassesTested, tClassificationData::Fail, sizeof(mAllCardsClassData.ClassesTested));
 		  
-		  SetBitFieldsAndAddCard(hand1, mAllCardsClassData);
-		  SetBitFieldsAndAddCard(hand2, mAllCardsClassData);
-		  SetBitFieldsAndAddCard(flop1, mAllCardsClassData);
-		  SetBitFieldsAndAddCard(flop2, mAllCardsClassData);
-		  SetBitFieldsAndAddCard(flop3, mAllCardsClassData);
-		  SetBitFieldsAndAddCard(turn, mAllCardsClassData);
-		  SetBitFieldsAndAddCard(river, mAllCardsClassData);
+		  SetBitFieldsAndAddCardFast(hand1, mAllCardsClassData);
+		  SetBitFieldsAndAddCardFast(hand2, mAllCardsClassData);
+		  SetBitFieldsAndAddCardFast(flop1, mAllCardsClassData);
+		  SetBitFieldsAndAddCardFast(flop2, mAllCardsClassData);
+		  SetBitFieldsAndAddCardFast(flop3, mAllCardsClassData);
+		  SetBitFieldsAndAddCardFast(turn, mAllCardsClassData);
+		  SetBitFieldsAndAddCardFast(river, mAllCardsClassData);
 
 		  // Set the high card.
 		  mAllCardsClassData.ClassesTested[static_cast<int>(HandClass::HighCard)] = tClassificationData::Pass;
@@ -133,8 +152,6 @@ namespace sim
 			  for (int cardRank = static_cast<int>(Rank::Ace); 
 					 cardRank >= static_cast<int>(Rank::Two); cardRank--)
 			  {
-					const int bitShift = cardRank << 2;
-
 					// Create straight bit field (to be used later).
 					// Init to max value to ensure remove the need for another boolean checking if we have
 					// the possibility for a straight.
@@ -159,7 +176,7 @@ namespace sim
 						 data.Straight.HighRank = static_cast<Rank>(cardRank);
 						 data.ClassesTested[static_cast<int>(HandClass::Straight)] = tClassificationData::Pass;
 					}
-					
+
 					// Check for straight flush and royal flush.
 					for (int j = 0; j < static_cast<int>(Suit::MaxSuit); j++)
 					{
@@ -175,7 +192,6 @@ namespace sim
 							  data.ClassesTested[static_cast<int>(HandClass::StraightFlush)] = tClassificationData::Pass;
 
 							  data.StraightFlush.HighRank = static_cast<Rank>(cardRank);
-							  data.StraightFlush.FlushSuit = static_cast<Suit>(j);
 						 }
 					}
 					
@@ -227,53 +243,54 @@ namespace sim
 			 for (int cardRank = static_cast<int>(Rank::Ace);
 				 cardRank >= static_cast<int>(Rank::Two); cardRank--)
 			 {
-				 const int bitShift = cardRank << 2;
+				 HandClass foundHandClass = HandClass::HighCard;
 
-				 // Create straight bit field (to be used later).
-				 // Init to max value to ensure remove the need for another boolean checking if we have
-				 // the possibility for a straight.
-				 uint32_t straightBitField = Max32BitInt;
-
-				 if (cardRank >= 3)
+				 if (cardRank >= 4)
 				 {
-					 if (cardRank >= 4)
-					 {
-						 straightBitField = 0b11111 << (cardRank - 4);
-					 }
-					 else {
-						 // Include the ace bit since it can also count as zero.
-						 straightBitField = 0b1000000001111;
-					 }
+					 const uint32_t bitShift = (cardRank - 4) << 2;
+					 const uint64_t straightBits = (data.CardsBitField >> bitShift) & StraightFlushBitMask;
+					 foundHandClass = static_cast<HandClass>(StraightFlushLookupTable[straightBits]);
+				 }
+				 else if (cardRank >= 3)
+				 {
+					 // A straight cannot be made the normal way, but it can be made with an ace as the low card.
+					 // Standard low straight is 2, 3, 4, 5, 6. This would be ACE, 2, 3, 4, 5
+					 // (2-5) is stored in the upper 16 bits of the flush bit field, then the 4 bits describing aces in the hand are ORd
+					 // to the front to take the "TWO" position.
+					 // Shift the hand data to the right by 4 bits, OR in the ACE data, and mask with the straight flush bits then perform the same
+					 // tests.
+					 uint64_t straightBits = data.CardsBitField << 4;
+					 constexpr uint32_t bitShift = static_cast<int>(Rank::Ace) << 2;
+					 constexpr uint64_t aceMask = 0xFULL << bitShift;
+					 const uint64_t aceBits = (data.CardsBitField & aceMask) >> bitShift;
+					 straightBits |= aceBits;
+					 straightBits &= StraightFlushBitMask;
+
+					 foundHandClass = static_cast<HandClass>(StraightFlushLookupTable[straightBits]);
 				 }
 
-				 // Check for a standard straight at this rank.
-				 if ((data.RankBitField & straightBitField) == straightBitField &&
-					 data.ClassesTested[static_cast<int>(HandClass::Straight)] == tClassificationData::Fail)
+				 if (foundHandClass == HandClass::Straight &&
+					  data.ClassesTested[static_cast<int>(HandClass::Straight) == tClassificationData::Fail])
 				 {
 					 data.Straight.HighRank = static_cast<Rank>(cardRank);
 					 data.ClassesTested[static_cast<int>(HandClass::Straight)] = tClassificationData::Pass;
 				 }
-
-				 // Check for straight flush and royal flush.
-				 for (int j = 0; j < static_cast<int>(Suit::MaxSuit); j++)
+				 else if (foundHandClass == HandClass::StraightFlush && 
+					  data.ClassesTested[static_cast<int>(HandClass::StraightFlush)] == tClassificationData::Fail)
 				 {
-					 const bool passedBitFieldTest = (data.SuitBitFields[j] & straightBitField) == straightBitField;
-
-					 if (passedBitFieldTest && cardRank == static_cast<int>(Rank::Ace))
+					 if (cardRank == static_cast<int>(Rank::Ace))
 					 {
 						 data.ClassesTested[static_cast<int>(HandClass::RoyalFlush)] = tClassificationData::Pass;
 					 }
 
-					 if (passedBitFieldTest && data.ClassesTested[static_cast<int>(HandClass::StraightFlush)] == tClassificationData::Fail)
-					 {
-						 data.ClassesTested[static_cast<int>(HandClass::StraightFlush)] = tClassificationData::Pass;
-
-						 data.StraightFlush.HighRank = static_cast<Rank>(cardRank);
-						 data.StraightFlush.FlushSuit = static_cast<Suit>(j);
-					 }
+					 data.ClassesTested[static_cast<int>(HandClass::StraightFlush)] = tClassificationData::Pass;
+					 data.StraightFlush.HighRank = static_cast<Rank>(cardRank);
 				 }
 
-				 const uint32_t numCardsWithRank = data.RankCardCount[cardRank];
+				 const uint32_t bitShift = cardRank << 2;
+				 const uint64_t mask = 0xFULL << bitShift;
+				 const uint64_t numCardsWithRankBits = ((data.CardsBitField & mask) >> bitShift) & 0xF;
+				 const uint8_t numCardsWithRank = RankCardCountLookupTable[numCardsWithRankBits];
 
 				 // If we got counts higher than 1, record here.
 				 if (numCardsWithRank == 2 && data.ClassesTested[static_cast<int>(HandClass::OnePair)] == tClassificationData::Fail)
@@ -298,13 +315,13 @@ namespace sim
 				 }
 			 }
 
-			 // Set flush data.
-			 for (int i = 0; i < static_cast<int>(Suit::MaxSuit); i++)
+			 for (int i = 0; i < 4; i++)
 			 {
 				 if (data.SuitCardCount[i] >= 5)
 				 {
-					 data.ClassesTested[static_cast<int>(HandClass::Flush)] = tClassificationData::Pass;
-					 data.Flush.FlushSuit = static_cast<Suit>(i);
+					  data.ClassesTested[static_cast<int>(HandClass::Flush)] = tClassificationData::Pass;
+					  data.Flush.FlushSuit = static_cast<Suit>(i);
+					  break;
 				 }
 			 }
 
@@ -387,11 +404,8 @@ namespace sim
 				case HandClass::StraightFlush:
 					 {
 						  card_t randomCardWithRank = Card::CreateCard((Rank)mAllCardsClassData.StraightFlush.HighRank, Suit::Clubs);
-						  card_t randomCardWithSuit = Card::CreateCard(Rank::Two, mAllCardsClassData.Flush.FlushSuit);
 						  outputStream << "Straight Flush: S-";
 						  Card::PrintRank(randomCardWithRank, outputStream);
-						  outputStream << "F-";
-						  Card::PrintSuit(randomCardWithSuit, outputStream);
 					 }
 
 					 break;

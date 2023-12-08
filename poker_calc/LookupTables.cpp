@@ -1,5 +1,7 @@
 #include "LookupTables.h"
 
+#include <bitset>
+
 #include "Cards.h"
 #include "Poker.h"
 using namespace sim;
@@ -7,7 +9,7 @@ using namespace sim;
 // TODO: have the lookup table cache to a file if it doesn't already exit and load from that file if it does.
 void InitStraightFlushLookupTable()
 {
-   StraightFlushLookupTable = new uint8_t[1 << 20];
+   StraightFlushLookupTable = new uint8_t[1 << 21 << 0];
 
    card_t cards[20] = { 0 };
    HandClassification handClass;
@@ -34,13 +36,13 @@ void InitStraightFlushLookupTable()
       }
 
       handClass.ClassifyArbitraryNumCards(cards, 20);
-      HandClass classif = handClass.GetClassification();
+      tClassificationData classif = handClass.GetClassificationData();
 
-      if (classif == HandClass::Straight)
+      if (classif.ClassesTested[static_cast<int>(HandClass::Straight)] == tClassificationData::Pass)
       {
          StraightFlushLookupTable[i] = static_cast<int>(HandClass::Straight);
       }
-      else if (classif == HandClass::StraightFlush)
+      if (classif.ClassesTested[static_cast<int>(HandClass::StraightFlush)] == tClassificationData::Pass)
       {
          StraightFlushLookupTable[i] = static_cast<int>(HandClass::StraightFlush);
       }
@@ -50,8 +52,25 @@ void InitStraightFlushLookupTable()
    }
 }
 
+void InitRankCardCountLookupTable()
+{
+   RankCardCountLookupTable = new uint8_t[0x10];
+
+   for (int i = 0; i < 0x10; i++)
+   {
+      RankCardCountLookupTable[i] = static_cast<uint8_t>(std::bitset<8>(i).count());
+   }
+}
+
 void InitLookupTables()
 {
+   InitRankCardCountLookupTable();
    InitStraightFlushLookupTable();
+}
+
+void CleanupLookupTables()
+{
+   delete[] RankCardCountLookupTable;
+   delete[] StraightFlushLookupTable;
 }
 

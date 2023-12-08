@@ -74,7 +74,6 @@ namespace sim
 	 
 	 struct tStraightFlushData
 	 {
-		  Suit FlushSuit;
 		  Rank HighRank;
 	 };
 
@@ -103,7 +102,7 @@ namespace sim
 		  
 		  // The number of cards at the current rank.
 		  uint32_t RankCardCount[static_cast<int>(Rank::MaxRank)];
-		  uint32_t SuitCardCount[static_cast<int>(Suit::MaxSuit)];
+		  uint8_t SuitCardCount[static_cast<int>(Suit::MaxSuit)];
 		  
 		  
 		  /// @brief This rank bit field is independent of suit.
@@ -144,8 +143,7 @@ namespace sim
 				void ClassifyArbitraryNumCards(card_t* cards, int numCards);
 				
 				void PrintAllCardsClassification(std::ostream& outputStream);
-
-				HandClass GetClassification() const { return mAllCardsClassData.HandClassification; }
+				tClassificationData& GetClassificationData() { return mAllCardsClassData; }
 
 		  private:
 				tClassificationData mAllCardsClassData;

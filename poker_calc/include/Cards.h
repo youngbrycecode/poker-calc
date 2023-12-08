@@ -5,48 +5,48 @@
 
 namespace sim 
 {
-    typedef uint8_t card_t;
+	 typedef uint8_t card_t;
 
-    enum class Rank
-    {
-        Two,
-        Three,
-        Four,
-        Five,
-        Six, 
-        Seven,
-        Eight,
-        Nine,
-        Ten,
-        Jack,
-        Queen,
-        King,
-        Ace,
-        MaxRank
-    };
-    
-    enum class Suit
-    {
-        Spades,
-        Hearts,
-        Clubs,
-        Diamonds,
-        MaxSuit
-    };
-    
-    /// @brief Utilities dealing with cards.
-    class Card 
-    {
-        public: 
-            /// @brief Cards are encoded into a single integer for compression 
-            /// @param rank 
-            /// @param suit 
-            /// @return 
-            static card_t CreateCard(Rank rank, Suit suit);
+	 enum class Rank
+	 {
+		  Two,
+		  Three,
+		  Four,
+		  Five,
+		  Six, 
+		  Seven,
+		  Eight,
+		  Nine,
+		  Ten,
+		  Jack,
+		  Queen,
+		  King,
+		  Ace,
+		  MaxRank
+	 };
+	 
+	 enum class Suit
+	 {
+		  Spades,
+		  Hearts,
+		  Clubs,
+		  Diamonds,
+		  MaxSuit
+	 };
+	 
+	 /// @brief Utilities dealing with cards.
+	 class Card 
+	 {
+		  public: 
+				/// @brief Cards are encoded into a single integer for compression 
+				/// @param rank 
+				/// @param suit 
+				/// @return 
+				static card_t CreateCard(Rank rank, Suit suit);
 
-            static void Print(card_t card, std::ostream& outBuffer);
-            static void PrintRank(card_t card, std::ostream& outBuffer);
-            static void PrintSuit(card_t card, std::ostream& outBuffer);
+				static void Print(card_t card, std::ostream& outBuffer);
+				static void PrintRank(card_t card, std::ostream& outBuffer);
+				static void PrintSuit(card_t card, std::ostream& outBuffer);
 
 			/// @brief 1111 xxxx
 			static constexpr card_t RankMask = 0x3C;
@@ -57,14 +57,14 @@ namespace sim
 			static constexpr int RankBits = 4;
 			static constexpr int SuitBits = 2;
 
-            inline static Rank GetRank(card_t card)
-            {
+				inline static Rank GetRank(card_t card)
+				{
 				return static_cast<Rank>((card & RankMask) >> SuitBits);
-            }
+				}
 
-            inline static Suit GetSuit(card_t card)
-            {
-                return static_cast<Suit>(card & SuitMask);
-            }
-    };
+				inline static Suit GetSuit(card_t card)
+				{
+					 return static_cast<Suit>(card & SuitMask);
+				}
+	 };
 }
