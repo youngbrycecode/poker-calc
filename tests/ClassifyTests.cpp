@@ -110,9 +110,20 @@ TEST(ClassifyTests, FiveCardPokerHandClassificationTest)
 		HandClass expectedClassification = LoadCardsAndClassification(currentLine.c_str(), hand1, hand2, flop1, flop2, flop3);
 		classifier.ClassifyAllCardsFast(hand1, hand2, flop1, flop2, flop3, NotACard, NotACard);
 
-		tClassificationData& classificationData = classifier.GetClassificationData();
+		HandClass classif = classifier.GetClassificationData().HandClassification;
 
-		if (expectedClassification != classificationData.HandClassification)
+		card_t cards[5];
+		cards[0] = hand1;
+		cards[1] = hand2;
+		cards[2] = flop1;
+		cards[3] = flop2;
+		cards[4] = flop3;
+
+		classifier.ClassifyArbitraryNumCards(cards, 5);
+		HandClass classif2 = classifier.GetClassificationData().HandClassification;
+
+		if (expectedClassification != classif||
+			 expectedClassification != classif2)
 		{
 			Card::Print(hand1, std::cout);
 			Card::Print(hand2, std::cout);
@@ -122,7 +133,8 @@ TEST(ClassifyTests, FiveCardPokerHandClassificationTest)
 
 			std::cout << "\n";
 			classifier.PrintAllCardsClassification(std::cout);
-			ASSERT_EQ(expectedClassification, classificationData.HandClassification);
+			ASSERT_EQ(expectedClassification, classif);
+			ASSERT_EQ(expectedClassification, classif2);
 		}
 	} while (std::getline(dataSet, currentLine));
 
