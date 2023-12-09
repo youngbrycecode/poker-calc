@@ -122,8 +122,8 @@ TEST(ClassifyTests, FiveCardPokerHandClassificationTest)
 		classifier.ClassifyArbitraryNumCards(cards, 5);
 		HandClass classif2 = classifier.GetClassificationData().HandClassification;
 
-		if (expectedClassification != classif||
-			 expectedClassification != classif2)
+		if (expectedClassification != classif ||
+			expectedClassification != classif2)
 		{
 			Card::Print(hand1, std::cout);
 			Card::Print(hand2, std::cout);

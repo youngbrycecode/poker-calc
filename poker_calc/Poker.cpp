@@ -2,21 +2,22 @@
 
 #include <string>
 
-namespace sim 
+namespace sim
 {
     PokerGameState::PokerGameState(int numPlayers, int seed)
         : mRandom(seed), mHands(numPlayers)
     {
     }
-    
+
     PokerGameState::~PokerGameState() = default;
-    
+
     void PokerGameState::Deal()
     {
         for (int i = 0; i < Hand::HandSize; i++)
         {
             for (auto& hand : mHands)
             {
+                hand.ClearHand();
                 const card_t nextCard = mDeck.Draw();
                 hand.DealCard(nextCard);
             }
@@ -31,19 +32,19 @@ namespace sim
         mFlop[1] = mDeck.Draw();
         mFlop[2] = mDeck.Draw();
     }
-    
+
     void PokerGameState::DealTurn()
     {
         mDeck.Draw();
         mTurn = mDeck.Draw();
     }
-    
+
     void PokerGameState::DealRiver()
     {
         mDeck.Draw();
         mRiver = mDeck.Draw();
     }
-    
+
     void PokerGameState::Reset()
     {
         mDeck.ShuffleAndReset(Deck::OptimalShuffleCount, mRandom);
@@ -53,15 +54,15 @@ namespace sim
     {
         if (mHandIndex >= HandSize)
         {
-            throw std::out_of_range("Players can only be dealt " 
-                                    + std::to_string(HandSize) 
-                                    + " cards per round");
+            throw std::out_of_range("Players can only be dealt "
+                + std::to_string(HandSize)
+                + " cards per round");
         }
-        
+
         mHand[mHandIndex] = card;
         mHandIndex++;
     }
-    
+
     void PokerGameState::Hand::ClearHand()
     {
         mHandIndex = 0;
