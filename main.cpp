@@ -8,49 +8,47 @@ using namespace sim;
 
 int main()
 {
-    InitLookupTables();
+   InitLookupTables();
 
-    const int numSims = 500e6;
-    int count = 0;
+   const uint64_t numSims = 1e6;
 
-    HandClassification classifier;
-    Deck deck;
-    Random random(101);
+   HandClassification classifier;
+   Deck deck;
+   Random random(101);
 
-    uint64_t classificationCounts[static_cast<int>(HandClass::MaxClassification)] = { 0 };
+   uint64_t classificationCounts[static_cast<int>(HandClass::MaxClassification)] = { 0 };
 
-    do 
-    {
-        deck.ShuffleAndReset(Deck::OptimalShuffleCount, random);
+   for (uint64_t i = 0; i < numSims; i++) 
+   {
+      deck.ShuffleAndReset(Deck::OptimalShuffleCount, random);
 
-        card_t hand1 = deck.Draw();
-        card_t hand2 = deck.Draw();
+      card_t hand1 = deck.Draw();
+      card_t hand2 = deck.Draw();
 
-        deck.Draw();
+      deck.Draw();
 
-        card_t f1 = deck.Draw();
-        card_t f2 = deck.Draw();
-        card_t f3 = deck.Draw();
-        
-        deck.Draw();
-        card_t turn = deck.Draw();
+      card_t f1 = deck.Draw();
+      card_t f2 = deck.Draw();
+      card_t f3 = deck.Draw();
 
-        deck.Draw();
-        card_t river = deck.Draw();
+      deck.Draw();
+      card_t turn = deck.Draw();
 
-        classifier.ClassifyAllCardsFast(hand1, hand2, f1, f2, f3, turn, river);
-        classificationCounts[static_cast<int>(classifier.GetClassificationData().HandClassification)]++;
+      deck.Draw();
+      card_t river = deck.Draw();
 
-        // Get the classification for the first player and create the table of classification statistics.
-        count++;
-    } while (count < numSims);
+      classifier.ClassifyAllCardsFast(hand1, hand2, f1, f2, f3, turn, river);
+      HandClass classification = classifier.GetClassificationData().HandClassification;
 
-    for (int i = 0; i < static_cast<int>(HandClass::MaxClassification); i++)
-    {
-        double percent = (classificationCounts[i] / static_cast<double>(numSims));
-        std::cout << i << ": 1/" << 1.0 / percent << " : " << percent << "%\n";
-    }
+      classificationCounts[static_cast<int>(classifier.GetClassificationData().HandClassification)]++;
+   }
 
-    CleanupLookupTables();
-    return 0;
+   for (int i = 0; i < static_cast<int>(HandClass::MaxClassification); i++)
+   {
+      double probability = (classificationCounts[i] / static_cast<double>(numSims));
+      std::cout << i << ": 1/" << 1.0 / probability << " : " << 100 * probability << "%\n";
+   }
+
+   CleanupLookupTables();
+   return 0;
 }
