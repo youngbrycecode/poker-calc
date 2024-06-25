@@ -140,7 +140,6 @@ TEST(ClassifyTests, ThreeOfAKindToFullHouseConversions)
    // Ensure we get full house data in the fast processor.
    classification.ClassifyAllCardsFast(hand1, hand2, flop1, flop2, flop3, turn, river);
    ASSERT_EQ(classification.GetClassificationData().ClassesTested[static_cast<int>(HandClass::FullHouse)], tClassificationData::Pass);
-
 }
 
 /// This test just runs the classify function on a two pair many many times and reports how long it takes to do so.

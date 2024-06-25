@@ -6,19 +6,28 @@
 
 using namespace sim;
 
+void PerformClassificationStats(uint64_t numTrials);
+
 int main()
 {
    InitLookupTables();
 
-   const uint64_t numSims = 1e6;
+   const uint64_t numSims = 1e9;
+   PerformClassificationStats(numSims);
 
+   CleanupLookupTables();
+   return 0;
+}
+
+void PerformClassificationStats(uint64_t numTrials)
+{
    HandClassification classifier;
    Deck deck;
    Random random(101);
 
    uint64_t classificationCounts[static_cast<int>(HandClass::MaxClassification)] = { 0 };
 
-   for (uint64_t i = 0; i < numSims; i++) 
+   for (uint64_t i = 0; i < numTrials; i++) 
    {
       deck.ShuffleAndReset(Deck::OptimalShuffleCount, random);
 
@@ -45,10 +54,7 @@ int main()
 
    for (int i = 0; i < static_cast<int>(HandClass::MaxClassification); i++)
    {
-      double probability = (classificationCounts[i] / static_cast<double>(numSims));
+      double probability = (classificationCounts[i] / static_cast<double>(numTrials));
       std::cout << i << ": 1/" << 1.0 / probability << " : " << 100 * probability << "%\n";
    }
-
-   CleanupLookupTables();
-   return 0;
 }
