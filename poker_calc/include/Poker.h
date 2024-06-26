@@ -78,6 +78,12 @@ namespace sim
       Rank HighRank;
    };
 
+   struct tFullHouseData
+   {
+      Rank ThreeOfAKindRank;
+      Rank PairRank;
+   };
+
    struct tClassificationData
    {
       HandClass HandClassification;
@@ -89,6 +95,7 @@ namespace sim
       tThreeOfAKindData ThreeOfAKind;
       tStraightData Straight;
       tFlushData Flush;
+      tFullHouseData FullHouse;
       tFourOfAKindData FourOfAKind;
       tStraightFlushData StraightFlush;
 

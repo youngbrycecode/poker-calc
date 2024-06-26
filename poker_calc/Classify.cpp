@@ -152,6 +152,10 @@ namespace sim
          int pairCount = 0;
          int nOfAKindCount = 0;
 
+         int highestPair = NotACard;
+         int highestNOfAKind = NotACard;
+         int secondHighestNOfAkind = NotACard;
+
          for (int cardRank = static_cast<int>(Rank::Ace);
             cardRank >= static_cast<int>(Rank::Two); cardRank--)
          {
@@ -207,6 +211,7 @@ namespace sim
                {
                   data.OnePair.HighRank = static_cast<Rank>(cardRank);
                   data.ClassesTested[static_cast<int>(HandClass::OnePair)] = tClassificationData::Pass;
+                  highestPair = cardRank;
                }
                else if (numCardsWithRank == 2 && data.ClassesTested[static_cast<int>(HandClass::TwoPair)] == tClassificationData::Fail)
                {
@@ -230,6 +235,15 @@ namespace sim
                }
 
                nOfAKindCount++;
+
+               if (nOfAKindCount == 1)
+               {
+                  highestNOfAKind = cardRank;
+               }
+               else if (nOfAKindCount == 2)
+               {
+                  secondHighestNOfAkind = cardRank;
+               }
             }
          }
 
@@ -246,9 +260,11 @@ namespace sim
          // A full house can be made with the following:
          // 1. A pair and any number of n of a kinds.
          // 2. More than two n of a kinds.
-         if ((pairCount >= 1 && nOfAKindCount >= 1) ||
-             (nOfAKindCount >= 2))
+         if (pairCount >= 1 && nOfAKindCount >= 1 ||
+             nOfAKindCount >= 2)
          {
+            data.FullHouse.ThreeOfAKindRank = static_cast<Rank>(highestNOfAKind);
+            data.FullHouse.PairRank = static_cast<Rank>(std::max(highestPair, secondHighestNOfAkind));
             data.ClassesTested[static_cast<int>(HandClass::FullHouse)] = tClassificationData::Pass;
          }
       }
@@ -258,6 +274,10 @@ namespace sim
          // Keep a running total of the number of pairs and n of a kinds we find in the hand.
          int pairCount = 0;
          int nOfAKindCount = 0;
+
+         int highestPair = NotACard;
+         int highestNOfAKind = NotACard;
+         int secondHighestNOfAkind = NotACard;
          
          for (int cardRank = static_cast<int>(Rank::Ace);
             cardRank >= static_cast<int>(Rank::Two); cardRank--)
@@ -339,6 +359,7 @@ namespace sim
                {
                   data.OnePair.HighRank = static_cast<Rank>(cardRank);
                   data.ClassesTested[static_cast<int>(HandClass::OnePair)] = tClassificationData::Pass;
+                  highestPair = cardRank;
                }
                else if (numCardsWithRank == 2 && data.ClassesTested[static_cast<int>(HandClass::TwoPair)] == tClassificationData::Fail)
                {
@@ -362,6 +383,15 @@ namespace sim
                }
 
                nOfAKindCount++;
+
+               if (nOfAKindCount == 1)
+               {
+                  highestNOfAKind = cardRank;
+               }
+               else if (nOfAKindCount == 2)
+               {
+                  secondHighestNOfAkind = cardRank;
+               }
             }
          }
 
@@ -390,9 +420,11 @@ namespace sim
          // A full house can be made with the following:
          // 1. A pair and any number of n of a kinds.
          // 2. More than two n of a kinds.
-         if ((pairCount >= 1 && nOfAKindCount >= 1) || 
-             (nOfAKindCount >= 2))
+         if (pairCount >= 1 && nOfAKindCount >= 1 ||
+             nOfAKindCount >= 2)
          {
+            data.FullHouse.ThreeOfAKindRank = static_cast<Rank>(highestNOfAKind);
+            data.FullHouse.PairRank = static_cast<Rank>(std::max(highestPair, secondHighestNOfAkind));
             data.ClassesTested[static_cast<int>(HandClass::FullHouse)] = tClassificationData::Pass;
          }
       }

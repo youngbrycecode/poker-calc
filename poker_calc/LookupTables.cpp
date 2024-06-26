@@ -45,9 +45,6 @@ void InitStraightFlushLookupTable()
       {
          StraightFlushLookupTable[i] = static_cast<int>(HandClass::StraightFlush);
       }
-      else
-      {
-      }
    }
 }
 
