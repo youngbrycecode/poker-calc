@@ -365,14 +365,26 @@ namespace sim
             }
          }
 
-         for (int i = 0; i < static_cast<int>(Suit::MaxSuit); i++)
+         // Classify the flush
+         if (data.SuitCardCount[static_cast<int>(Suit::Clubs)] >= 5) 
          {
-            if (data.SuitCardCount[i] >= 5)
-            {
-               data.ClassesTested[static_cast<int>(HandClass::Flush)] = tClassificationData::Pass;
-               data.Flush.FlushSuit = static_cast<Suit>(i);
-               break;
-            }
+            data.ClassesTested[static_cast<int>(HandClass::Flush)] = tClassificationData::Pass;
+            data.Flush.FlushSuit = static_cast<Suit>(static_cast<int>(Suit::Clubs));
+         }
+         else if (data.SuitCardCount[static_cast<int>(Suit::Hearts)] >= 5) 
+         {
+            data.ClassesTested[static_cast<int>(HandClass::Flush)] = tClassificationData::Pass;
+            data.Flush.FlushSuit = static_cast<Suit>(static_cast<int>(Suit::Hearts));
+         }
+         else if (data.SuitCardCount[static_cast<int>(Suit::Spades)] >= 5) 
+         {
+            data.ClassesTested[static_cast<int>(HandClass::Flush)] = tClassificationData::Pass;
+            data.Flush.FlushSuit = static_cast<Suit>(static_cast<int>(Suit::Spades));
+         }
+         else if (data.SuitCardCount[static_cast<int>(Suit::Diamonds)] >= 5) 
+         {
+            data.ClassesTested[static_cast<int>(HandClass::Flush)] = tClassificationData::Pass;
+            data.Flush.FlushSuit = static_cast<Suit>(static_cast<int>(Suit::Diamonds));
          }
 
          // A full house can be made with the following:

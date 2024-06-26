@@ -6,7 +6,6 @@
 #include "Poker.h"
 using namespace sim;
 
-// TODO: have the lookup table cache to a file if it doesn't already exit and load from that file if it does.
 void InitStraightFlushLookupTable()
 {
    StraightFlushLookupTable = new uint8_t[1 << 21 << 0];
