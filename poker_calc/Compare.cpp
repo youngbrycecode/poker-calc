@@ -18,7 +18,7 @@ namespace sim
          const uint64_t mask = 0xFULL << bitShift;
 
          const int firstNCards = RankCardCountLookupTable[((first.CardsBitField & mask) >> bitShift) & 0xFULL];
-         const int secondNCards = RankCardCountLookupTable[((first.CardsBitField & mask) >> bitShift) & 0xFULL];
+         const int secondNCards = RankCardCountLookupTable[((second.CardsBitField & mask) >> bitShift) & 0xFULL];
 
          if (firstNCards != secondNCards)
          {

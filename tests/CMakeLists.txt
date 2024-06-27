@@ -17,3 +17,7 @@ add_test(decktest_gtest decktest dt decktest)
 add_executable(classifytests ClassifyTests.cpp ${HEADER_FILES})
 target_link_libraries(classifytests gtest_main poker_calc_lib)
 add_test(classifytests_gtest classifytests ct classifytests)
+
+add_executable(comparetests CompareTests.cpp ${HEADER_FILES})
+target_link_libraries(comparetests gtest_main poker_calc_lib)
+add_test(compare_gtest comparetests ct comparetests)

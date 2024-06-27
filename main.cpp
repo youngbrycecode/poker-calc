@@ -12,7 +12,7 @@ int main()
 {
    InitLookupTables();
 
-   const uint64_t numSims = 1e9;
+   const uint64_t numSims = 100e6;
    PerformClassificationStats(numSims);
 
    CleanupLookupTables();

@@ -1,6 +1,7 @@
 #include "Poker.h"
 #include <string.h>
 #include <algorithm>
+#include <cassert>
 
 #include "LookupTables.h"
 
@@ -152,9 +153,9 @@ namespace sim
          int pairCount = 0;
          int nOfAKindCount = 0;
 
-         int highestPair = NotACard;
-         int highestNOfAKind = NotACard;
-         int secondHighestNOfAkind = NotACard;
+         int highestPair = -1;
+         int highestNOfAKind = -1;
+         int secondHighestNOfAkind = -1;
 
          for (int cardRank = static_cast<int>(Rank::Ace);
             cardRank >= static_cast<int>(Rank::Two); cardRank--)
@@ -266,6 +267,9 @@ namespace sim
             data.FullHouse.ThreeOfAKindRank = static_cast<Rank>(highestNOfAKind);
             data.FullHouse.PairRank = static_cast<Rank>(std::max(highestPair, secondHighestNOfAkind));
             data.ClassesTested[static_cast<int>(HandClass::FullHouse)] = tClassificationData::Pass;
+
+            assert(static_cast<int>(data.FullHouse.ThreeOfAKindRank) != -1, "Invalid full house three of a kind");
+            assert(static_cast<int>(data.FullHouse.PairRank) != -1, "Invalid full house pair");
          }
       }
 
@@ -275,9 +279,9 @@ namespace sim
          int pairCount = 0;
          int nOfAKindCount = 0;
 
-         int highestPair = NotACard;
-         int highestNOfAKind = NotACard;
-         int secondHighestNOfAkind = NotACard;
+         int highestPair = -1;
+         int highestNOfAKind = -1;
+         int secondHighestNOfAkind = -1;
          
          for (int cardRank = static_cast<int>(Rank::Ace);
             cardRank >= static_cast<int>(Rank::Two); cardRank--)
